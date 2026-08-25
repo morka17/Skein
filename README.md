@@ -71,7 +71,7 @@ Full breakdown of every module and how they call into each other is in
 ## Quickstart
 
 ```bash
-git clone https://github.com/<you>/skein.git
+git clone https://github.com/morka17/skein.git
 cd skein
 docker compose up -d          # spins up Redis
 pip install -r requirements.txt

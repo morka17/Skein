@@ -63,9 +63,9 @@ postgres = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourname/skein"
-Repository = "https://github.com/yourname/skein"
-Issues = "https://github.com/yourname/skein/issues"
+Homepage = "https://github.com/morka17/skein"
+Repository = "https://github.com/morka17/skein"
+Issues = "https://github.com/morka17/skein/issues"
 
 [project.scripts]
 skein-worker = "task_engine.scripts.run_worker:main"
