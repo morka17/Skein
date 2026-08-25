@@ -1,6 +1,4 @@
 """
-task_engine/worker/registry.py
-
 Maps a Task's `name` string to the actual coroutine that should run for it.
 This indirection is *why* core.Task can be serialized into Redis without
 ever containing code — a worker process just needs this registry populated
