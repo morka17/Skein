@@ -1,6 +1,4 @@
 """
-task_engine/core/task.py
-
 The Task domain model — the unit of work the entire engine revolves around.
 Pure data + state-machine behavior, no I/O: nothing here touches Redis, the
 network, or the filesystem. `queue/result_store.py` is responsible for

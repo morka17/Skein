@@ -1,6 +1,4 @@
 """
-task_engine/core/dag.py
-
 The DAG domain model: a set of Task nodes plus directed edges expressing
 "child depends on parent". Responsible for structural validation (cycle
 detection, depth limits) and pure graph queries (topological order, which

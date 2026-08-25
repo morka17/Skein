@@ -1,6 +1,4 @@
 """
-task_engine/core/states.py
-
 The task state machine. `core/task.py` routes every mutation through
 `validate_transition` here, so illegal jumps (e.g. PENDING -> SUCCESS,
 skipping execution entirely) fail loudly at the point of the bug instead
