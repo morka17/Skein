@@ -1,6 +1,4 @@
 """
-task_engine/queue/dag_resolver.py
-
 The I/O bridge between core.DAG's pure graph algorithms and live Redis
 state. Owns two jobs:
 
@@ -96,14 +94,26 @@ class DAGResolver:
         Determines which sibling/child nodes are now unlocked by `task`
         succeeding, marks them QUEUED, pushes them to the priority queue,
         and returns them. A no-op (returns []) for standalone tasks
-        (dag_id is None).
+        (dag_id is None). Delegates to resweep() — see its docstring for
+        why re-deriving from scratch, rather than diffing off `task`
+        specifically, is the safer approach.
         """
         if task.dag_id is None:
             return []
+        return await self.resweep(task.dag_id)
 
-        meta = await self._load_meta(task.dag_id)
+    async def resweep(self, dag_id: str) -> list[Task]:
+        """
+        Re-derives every currently-ready node in a DAG directly from
+        ResultStore state, independent of which specific task triggered
+        the check. Used both by on_task_success() (the reactive path) and
+        by scheduler.py's periodic reconciliation loop (the safety-net
+        path) — safe to call redundantly, since it only queues nodes still
+        in PENDING; anything already QUEUED/RUNNING/terminal is left alone.
+        """
+        meta = await self._load_meta(dag_id)
         if meta is None:
-            logger.warning("dag %s metadata missing — cannot resolve dependents", task.dag_id)
+            logger.warning("dag %s metadata missing — cannot resolve dependents", dag_id)
             return []
         task_ids, edges = meta
 
@@ -113,7 +123,7 @@ class DAGResolver:
         # Rebuild a DAG view purely for its graph queries — already known
         # to be acyclic (validated at submit time), so this skips
         # re-running cycle detection.
-        dag = DAG(id=task.dag_id, tasks=all_tasks, edges=edges)
+        dag = DAG(id=dag_id, tasks=all_tasks, edges=edges)
         ready_ids = dag.ready_nodes(succeeded_ids)
 
         newly_queued: list[Task] = []
@@ -122,7 +132,8 @@ class DAGResolver:
             if node.state != TaskState.PENDING:
                 # Already QUEUED/RUNNING/terminal — guards against two
                 # parents finishing near-simultaneously both trying to
-                # unlock the same child.
+                # unlock the same child, and against a redundant call from
+                # scheduler.py's reconciliation loop.
                 continue
             node.mark_queued()
             await self._results.save(node)
