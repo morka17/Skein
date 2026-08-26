@@ -1,12 +1,12 @@
 [project]
 name = "skein-engine"
 version = "0.1.0"
-description = "A distributed task execution engine built on asyncio and Redis - priority scheduling, DAG-aware sub-task dependencies, and real-time execution monitoring."
+description = "A distributed task execution engine built on asyncio and Redis — priority scheduling, DAG-aware sub-task dependencies, and real-time execution monitoring."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-    { name = "Morka Joshua", email = "joshuamorka19@gmail.com" },
+    { name = "Morka Joshua", email = "joshua@hasule.com" },
 ]
 keywords = [
     "asyncio",
@@ -67,9 +67,11 @@ Homepage = "https://github.com/morka17/skein"
 Repository = "https://github.com/morka17/skein"
 Issues = "https://github.com/morka17/skein/issues"
 
-[project.scripts]
-skein-worker = "task_engine.scripts.run_worker:main"
-skein-api = "task_engine.scripts.run_api:main"
+# Note: no [project.scripts] entry points here — scripts/ lives at the repo
+# root, outside src/, so it isn't packaged into the installed wheel and
+# can't be an entry point target. Run the two processes directly instead:
+#   python scripts/run_worker.py
+#   python scripts/run_api.py
 
 # ----------------------------------------------------------------------
 # Build backend

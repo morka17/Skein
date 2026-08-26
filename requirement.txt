@@ -1,0 +1,34 @@
+# Core dependencies for running the engine (API + worker processes).
+# This mirrors pyproject.toml's [project.dependencies] as a flat,
+# pip-installable list — used by the Dockerfile, and for anyone who wants
+# `pip install -r requirements.txt` instead of `pip install -e .`.
+#
+# For local development (tests, linting, type-checking), prefer:
+#   pip install -e ".[dev]"
+# which pulls this same set via pyproject.toml plus the dev extras.
+
+# Queue / worker / DAG engine
+redis[hiredis]>=5.0,<6.0
+pydantic>=2.6,<3.0
+pydantic-settings>=2.2,<3.0
+
+# API + real-time layer
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+websockets>=12.0,<13.0
+
+# Structured logging
+structlog>=24.1,<25.0
+
+# --------------------------------------------------------------------
+# Optional extras — uncomment if you enable the corresponding feature.
+# Keep these out by default so the base image stays small; see
+# pyproject.toml's [project.optional-dependencies] for the source of truth.
+# --------------------------------------------------------------------
+
+# metrics_enabled=true (monitoring/metrics.py Prometheus exposition)
+# prometheus-client>=0.20,<1.0
+
+# database_url set (persistence/db.py durable audit trail)
+# asyncpg>=0.29,<1.0
+# sqlalchemy[asyncio]>=2.0,<3.0
