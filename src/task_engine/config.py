@@ -1,6 +1,4 @@
 """
-task_engine/config.py
-
 Centralized settings for the engine. Every other module (queue, worker,
 scheduler, api) imports `settings` from here instead of reading environment
 variables directly — keeps configuration in one auditable place and makes
@@ -12,7 +10,7 @@ failing halfway through a task run.
 """
 
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -128,6 +126,19 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
 
     # ------------------------------------------------------------------
+    # Persistence (optional — persistence/db.py, requires the `postgres`
+    # extra: pip install -e ".[postgres]")
+    # ------------------------------------------------------------------
+    database_url: Optional[str] = Field(
+        default=None,
+        description=(
+            "Postgres DSN for the optional durable audit trail, e.g. "
+            "postgresql+asyncpg://user:pass@host/db. Leave unset to run "
+            "without persistence/ — Redis alone remains fully functional."
+        ),
+    )
+
+    # ------------------------------------------------------------------
     # Observability
     # ------------------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = Field(default="INFO")
@@ -147,4 +158,4 @@ def get_settings() -> Settings:
 
 # Module-level singleton — the import most other modules will actually use:
 #   from task_engine.config import settings
-settings = get_settings() 
+settings = get_settings()

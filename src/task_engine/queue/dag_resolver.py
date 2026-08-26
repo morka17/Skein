@@ -142,6 +142,16 @@ class DAGResolver:
 
         return newly_queued
 
+    async def list_task_ids(self, dag_id: str) -> Optional[list[str]]:
+        """All task ids belonging to a DAG, or None if the DAG doesn't
+        exist. Used by api/routes/dags.py to assemble a full status
+        response without duplicating _load_meta's parsing logic."""
+        meta = await self._load_meta(dag_id)
+        if meta is None:
+            return None
+        task_ids, _edges = meta
+        return task_ids
+
     async def is_complete(self, dag_id: str) -> bool:
         """True once every node in the DAG has reached SUCCESS. Used to
         fire DagCompleted (monitoring/events.py)."""

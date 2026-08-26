@@ -27,7 +27,7 @@ from task_engine.queue.dag_resolver import DAGResolver
 from task_engine.queue.priority_queue import PriorityQueue
 from task_engine.queue.redis_client import get_redis
 from task_engine.queue.result_store import ResultStore
-from task_engine.scheduler.dependency_tracker import DependencyTracker, EventHook
+from task_engine.scheduler.dependency_tracker import DagCompleteHook, DependencyTracker, EventHook
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +40,13 @@ class Scheduler:
         resolver: Optional[DAGResolver] = None,
         redis_client: Optional[redis.Redis] = None,
         downstream_event: Optional[EventHook] = None,
+        on_dag_complete: Optional[DagCompleteHook] = None,
     ) -> None:
         self._redis = redis_client or get_redis()
         self.queue = queue or PriorityQueue(self._redis)
         self.results = results or ResultStore(self._redis)
         self.resolver = resolver or DAGResolver(self.queue, self.results, self._redis)
+        self._external_dag_complete_hook = on_dag_complete
         self.tracker = DependencyTracker(
             self.resolver,
             on_dag_complete=self._on_dag_complete,
@@ -132,3 +134,5 @@ class Scheduler:
     async def _on_dag_complete(self, dag_id: str) -> None:
         await self._redis.srem(self._active_dags_key, dag_id)
         logger.info("dag %s complete", dag_id)
+        if self._external_dag_complete_hook is not None:
+            await self._external_dag_complete_hook(dag_id)
